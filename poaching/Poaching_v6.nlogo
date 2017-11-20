@@ -6,14 +6,27 @@ globals
   min-reproduce-age
   max-age
   food-growth-rate
+  poacher-step
+  poacher-size
+  poacher-vision
 ]
 
 breed [elephants elephant]
+breed [poachers poacher]
 
 elephants-own
 [
   energy
   age
+  tusk-weight
+  tusk-growth-rate
+  location
+]
+
+poachers-own
+[
+  ivory
+  target
 ]
 
 patches-own
@@ -30,9 +43,14 @@ to setup
   set min-energy-to-reproduce 10
   set max-age 50
 
+  set poacher-size 1
+  set poacher-step .8
+  set poacher-vision 10
+
   set food-growth-rate 10
 
   initialize-elephants
+  initialize-poachers
   initialize-food
 
   reset-ticks
@@ -40,10 +58,13 @@ end
 
 to go
   ask elephants [
-    move
+    elephants-move
     eat-food
     reproduce
     death
+  ]
+  ask poachers [
+    hunt-elephants
   ]
   ask patches [
     set countdown random 25
@@ -52,13 +73,41 @@ to go
   tick
 end
 
+to set-initial-tusk-weight [initial-elephant-age]
+  let starting-point 1
+  let temp-tusk-weight (tusk-growth-rate / 100)
+  while [starting-point <= initial-elephant-age] [
+    set temp-tusk-weight (temp-tusk-weight + (temp-tusk-weight * (tusk-growth-rate / 100)))
+    set starting-point (starting-point + 1)
+    set tusk-weight temp-tusk-weight
+  ]
+end
+
+
 to initialize-elephants
   create-elephants num-elephants
   [
     set color (grey)
     set size elephant-size
     set energy 20 + random 20 - random 20
-    set age 0 + random max-age
+    set age 1 + random max-age
+    set location random 2
+    ifelse location = 1
+    [set color yellow]
+    [set color blue]
+    set tusk-growth-rate 1 + random-float 5.8
+    setxy random world-width random world-height
+  ]
+  ask elephants [
+    set-initial-tusk-weight (age)
+  ]
+end
+
+to initialize-poachers
+  create-poachers num-poachers
+  [
+    set color red
+    set ivory 0
     setxy random world-width random world-height
   ]
 end
@@ -71,9 +120,12 @@ to initialize-food
   ]
 end
 
-to move
+to elephants-move
   set energy (energy - 1)
   set age (age + 1)
+  ifelse tusk-weight = 0
+  [set tusk-weight (tusk-growth-rate / 100)]
+  [set tusk-weight (tusk-weight + (tusk-weight * (tusk-growth-rate / 100)))]
   rt random 50 - random 50
   fd elephant-step
 end
@@ -106,6 +158,27 @@ to death
   ]
 end
 
+to hunt-elephants
+  if target = 0 [
+    set target nobody
+  ]
+  ifelse target = nobody
+  [
+    let potential-targets nobody
+    set potential-targets elephants in-cone poacher-vision 120
+    if any? potential-targets [
+      set target one-of potential-targets with-max [tusk-weight]
+    ]
+  ]
+  [set heading towards target]
+  fd poacher-step
+  if target != nobody and target != 0 [
+    if member? target turtles-here [
+      ask target [die]
+    ]
+  ]
+end
+
 to grow-food
   set countdown (countdown - 1)
   if countdown <= 0
@@ -122,7 +195,11 @@ to food-color
   [set pcolor (white)]
 end
 
-
+to-report avg-elephant-energy
+  let total-energy sum [energy] of elephants
+  let avg-energy (total-energy / count elephants)
+  report avg-energy
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 375
@@ -194,7 +271,7 @@ num-elephants
 num-elephants
 0
 600
-600.0
+307.0
 1
 1
 NIL
@@ -233,7 +310,41 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot count turtles"
+"default" 1.0 0 -16777216 true "" "plot count elephants"
+"pen-1" 1.0 0 -2674135 true "" "plot count poachers"
+
+SLIDER
+194
+115
+366
+148
+num-poachers
+num-poachers
+0
+100
+100.0
+1
+1
+NIL
+HORIZONTAL
+
+PLOT
+70
+568
+270
+718
+plot 2
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot avg-elephant-energy"
 
 @#$#@#$#@
 ## WHAT IS IT?
