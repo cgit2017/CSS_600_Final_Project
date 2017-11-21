@@ -251,10 +251,10 @@ to-report collected-ivory
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-375
-83
-993
-702
+728
+14
+1346
+633
 -1
 -1
 6.04
@@ -348,7 +348,7 @@ PLOT
 171
 206
 321
-plot 1
+number of elephants
 NIL
 NIL
 0.0
@@ -360,7 +360,6 @@ false
 "" ""
 PENS
 "default" 1.0 0 -16777216 true "" "plot count elephants"
-"pen-1" 1.0 0 -2674135 true "" "plot count poachers"
 
 SLIDER
 5
@@ -427,6 +426,24 @@ false
 "" ""
 PENS
 "default" 1.0 0 -16777216 true "" "plot collected-ivory"
+
+PLOT
+217
+172
+417
+322
+total tusk weight
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot sum [tusk-weight] of elephants"
 
 @#$#@#$#@
 ## WHAT IS IT?
