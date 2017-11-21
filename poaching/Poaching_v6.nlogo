@@ -187,9 +187,7 @@ to reproduce
 end
 
 to death
-  if age > max-age or energy < 0 [
-    die
-  ]
+  if age > max-age or energy < 0 [die]
 end
 
 to hunt-elephants
