@@ -1,3 +1,5 @@
+;; TODO
+
 globals
 [
   elephant-step
@@ -6,19 +8,41 @@ globals
   min-reproduce-age
   max-age
   food-growth-rate
+  poacher-step
+  poacher-size
+  poacher-vision
+  ivory-demand
+  temp-ivory-demand
 ]
 
 breed [elephants elephant]
+breed [poachers poacher]
 
 elephants-own
 [
   energy
   age
+  tusk-weight
+  tusk-growth-rate
+  location
+]
+
+poachers-own
+[
+  ; unsold ivory in poacher's possession
+  ivory
+  ; elephant that the poacher is pursuing
+  target
+  funds
+  ; level of funds where poacher will drop out of the market
+  funds-threshold
 ]
 
 patches-own
 [
+  ; amount of food on a patch
   food-energy
+  ; ticks until patch can regrow food
   countdown
 ]
 
@@ -30,27 +54,64 @@ to setup
   set min-energy-to-reproduce 10
   set max-age 50
 
+  set poacher-size 1
+  set poacher-step .8
+  set poacher-vision 10
+
   set food-growth-rate 10
 
+  set ivory-demand initial-ivory-demand
+
   initialize-elephants
+  initialize-poachers
   initialize-food
 
   reset-ticks
 end
 
 to go
+  update-ivory-demand
   ask elephants [
-    move
+    elephants-move
     eat-food
     reproduce
     death
   ]
+  ask poachers [
+    if funds < funds-threshold [die]
+
+    hunt-elephants
+    go-to-market
+  ]
   ask patches [
-    set countdown random 25
     grow-food
   ]
   tick
 end
+
+to update-ivory-demand
+  ifelse random 2 = 1
+  [set ivory-demand (ivory-demand + random 3)
+  if ivory-demand < 0 [
+    set ivory-demand 0]
+  ]
+  [set ivory-demand (ivory-demand - random 3)
+    if ivory-demand < 0 [
+      set ivory-demand 0]
+    ]
+  set temp-ivory-demand ivory-demand
+end
+
+to set-initial-tusk-weight [initial-elephant-age]
+  let starting-point 1
+  let temp-tusk-weight (tusk-growth-rate / 100)
+  while [starting-point <= initial-elephant-age] [
+    set temp-tusk-weight (temp-tusk-weight + (temp-tusk-weight * (tusk-growth-rate / 100)))
+    set starting-point (starting-point + 1)
+    set tusk-weight temp-tusk-weight
+  ]
+end
+
 
 to initialize-elephants
   create-elephants num-elephants
@@ -58,7 +119,22 @@ to initialize-elephants
     set color (grey)
     set size elephant-size
     set energy 20 + random 20 - random 20
-    set age 0 + random max-age
+    set age 1 + random max-age
+    set tusk-growth-rate 1 + random-float 5.8
+    setxy random world-width random world-height
+  ]
+  ask elephants [
+    set-initial-tusk-weight (age)
+  ]
+end
+
+to initialize-poachers
+  create-poachers num-poachers
+  [
+    set color red
+    set ivory 0
+    set funds random 100
+    set funds-threshold random 20
     setxy random world-width random world-height
   ]
 end
@@ -71,17 +147,25 @@ to initialize-food
   ]
 end
 
-to move
+to elephants-move
   set energy (energy - 1)
   set age (age + 1)
+  ifelse tusk-weight = 0
+  [set tusk-weight (tusk-growth-rate / 100)]
+  [set tusk-weight (tusk-weight + (tusk-weight * (tusk-growth-rate / 100)))]
   rt random 50 - random 50
   fd elephant-step
 end
 
 to eat-food
+  ; if food is plentiful enough on patch
   if food-energy > 10 [
-    set food-energy (food-energy - 20)
+    ; consume 10 food
+    set food-energy (food-energy - 10)
+    ; get energy from food
     set energy (energy + 2)
+    ; set the patch's regrowth countdown
+    set countdown random 25
   ]
 end
 
@@ -106,6 +190,40 @@ to death
   ]
 end
 
+to hunt-elephants
+  if target = 0 [
+    set target nobody
+  ]
+  ifelse target = nobody
+  [
+    let potential-targets nobody
+    set potential-targets elephants in-cone poacher-vision 120
+    if any? potential-targets [
+      set target one-of potential-targets with-max [tusk-weight]
+    ]
+  ]
+  [set heading towards target]
+  fd poacher-step
+  if target != nobody and target != 0 [
+    if member? target turtles-here [
+      set ivory (ivory + ([tusk-weight] of target))
+      ask target [die]
+    ]
+  ]
+end
+
+to go-to-market
+  let ivory-sale 0
+  if temp-ivory-demand > 0 and ivory > 0 [
+    ifelse temp-ivory-demand > ivory
+    [set ivory-sale (temp-ivory-demand - ivory)]
+    [set ivory-sale (ivory - temp-ivory-demand)]
+  ]
+  set temp-ivory-demand (temp-ivory-demand - ivory-sale)
+  set ivory (ivory - ivory-sale)
+  set funds (funds + (ivory-sale * ivory-demand))
+end
+
 to grow-food
   set countdown (countdown - 1)
   if countdown <= 0
@@ -122,13 +240,21 @@ to food-color
   [set pcolor (white)]
 end
 
+to-report avg-elephant-energy
+  let total-energy sum [energy] of elephants
+  let avg-energy (total-energy / count elephants)
+  report avg-energy
+end
 
+to-report collected-ivory
+  report sum [ivory] of poachers
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
-375
-83
-993
-702
+728
+14
+1346
+633
 -1
 -1
 6.04
@@ -152,10 +278,10 @@ ticks
 30.0
 
 BUTTON
-6
-55
-72
-88
+5
+10
+71
+43
 NIL
 setup
 NIL
@@ -169,10 +295,10 @@ NIL
 1
 
 BUTTON
-100
-61
-163
-94
+78
+10
+141
+43
 NIL
 go
 T
@@ -186,25 +312,25 @@ NIL
 1
 
 SLIDER
-233
-11
-451
-44
+5
+48
+223
+81
 num-elephants
 num-elephants
 0
 600
-600.0
+307.0
 1
 1
 NIL
 HORIZONTAL
 
 BUTTON
-48
-178
-111
+148
+10
 211
+43
 NIL
 step
 NIL
@@ -218,11 +344,11 @@ NIL
 1
 
 PLOT
-110
-316
-310
-466
-plot 1
+6
+171
+206
+321
+number of elephants
 NIL
 NIL
 0.0
@@ -233,7 +359,91 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot count turtles"
+"default" 1.0 0 -16777216 true "" "plot count elephants"
+
+SLIDER
+5
+88
+177
+121
+num-poachers
+num-poachers
+0
+100
+99.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+5
+130
+186
+163
+initial-ivory-demand
+initial-ivory-demand
+0
+100
+100.0
+1
+1
+NIL
+HORIZONTAL
+
+PLOT
+5
+495
+205
+645
+plot 3
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot ivory-demand"
+
+PLOT
+8
+331
+208
+481
+collected-ivory
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot collected-ivory"
+
+PLOT
+217
+172
+417
+322
+total tusk weight
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot sum [tusk-weight] of elephants"
 
 @#$#@#$#@
 ## WHAT IS IT?
