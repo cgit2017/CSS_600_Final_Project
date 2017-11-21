@@ -9,6 +9,8 @@ globals
   poacher-step
   poacher-size
   poacher-vision
+  ivory-demand
+  temp-ivory-demand
 ]
 
 breed [elephants elephant]
@@ -25,13 +27,20 @@ elephants-own
 
 poachers-own
 [
+  ; unsold ivory in poacher's possession
   ivory
+  ; elephant that the poacher is pursuing
   target
+  funds
+  ; level of funds where poacher will drop out of the market
+  funds-threshold
 ]
 
 patches-own
 [
+  ; amount of food on a patch
   food-energy
+  ; ticks until patch can regrow food
   countdown
 ]
 
@@ -49,6 +58,8 @@ to setup
 
   set food-growth-rate 10
 
+  set ivory-demand initial-ivory-demand
+
   initialize-elephants
   initialize-poachers
   initialize-food
@@ -57,6 +68,7 @@ to setup
 end
 
 to go
+  update-ivory-demand
   ask elephants [
     elephants-move
     eat-food
@@ -64,13 +76,28 @@ to go
     death
   ]
   ask poachers [
+    if funds < funds-threshold [die]
+
     hunt-elephants
+    go-to-market
   ]
   ask patches [
-    set countdown random 25
     grow-food
   ]
   tick
+end
+
+to update-ivory-demand
+  ifelse random 2 = 1
+  [set ivory-demand (ivory-demand + random 3)
+  if ivory-demand < 0 [
+    set ivory-demand 0]
+  ]
+  [set ivory-demand (ivory-demand - random 3)
+    if ivory-demand < 0 [
+      set ivory-demand 0]
+    ]
+  set temp-ivory-demand ivory-demand
 end
 
 to set-initial-tusk-weight [initial-elephant-age]
@@ -131,9 +158,14 @@ to elephants-move
 end
 
 to eat-food
+  ; if food is plentiful enough on patch
   if food-energy > 10 [
-    set food-energy (food-energy - 20)
+    ; consume 10 food
+    set food-energy (food-energy - 10)
+    ; get energy from food
     set energy (energy + 2)
+    ; set the patch's regrowth countdown
+    set countdown random 25
   ]
 end
 
@@ -177,6 +209,18 @@ to hunt-elephants
       ask target [die]
     ]
   ]
+end
+
+to go-to-market
+  let ivory-sale 0
+  if temp-ivory-demand > 0 and ivory > 0 [
+    ifelse temp-ivory-demand > ivory
+    [set ivory-sale (temp-ivory-demand - ivory)]
+    [set ivory-sale (ivory - temp-ivory-demand)]
+  ]
+  set temp-ivory-demand (temp-ivory-demand - ivory-sale)
+  set ivory (ivory - ivory-sale)
+  set funds (funds + (ivory-sale * ivory-demand))
 end
 
 to grow-food
@@ -229,10 +273,10 @@ ticks
 30.0
 
 BUTTON
-6
-55
-72
-88
+5
+10
+71
+43
 NIL
 setup
 NIL
@@ -246,10 +290,10 @@ NIL
 1
 
 BUTTON
-100
-61
-163
-94
+78
+10
+141
+43
 NIL
 go
 T
@@ -263,10 +307,10 @@ NIL
 1
 
 SLIDER
-233
-11
-451
-44
+5
+48
+223
+81
 num-elephants
 num-elephants
 0
@@ -278,10 +322,10 @@ NIL
 HORIZONTAL
 
 BUTTON
-48
-178
-111
+148
+10
 211
+43
 NIL
 step
 NIL
@@ -295,10 +339,10 @@ NIL
 1
 
 PLOT
-110
-316
-310
-466
+6
+171
+206
+321
 plot 1
 NIL
 NIL
@@ -314,12 +358,27 @@ PENS
 "pen-1" 1.0 0 -2674135 true "" "plot count poachers"
 
 SLIDER
-194
-115
-366
-148
+5
+88
+177
+121
 num-poachers
 num-poachers
+0
+100
+99.0
+1
+1
+NIL
+HORIZONTAL
+
+SLIDER
+5
+130
+186
+163
+initial-ivory-demand
+initial-ivory-demand
 0
 100
 100.0
@@ -329,11 +388,11 @@ NIL
 HORIZONTAL
 
 PLOT
-70
-568
-270
-718
-plot 2
+5
+495
+205
+645
+plot 3
 NIL
 NIL
 0.0
@@ -344,7 +403,7 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot avg-elephant-energy"
+"default" 1.0 0 -16777216 true "" "plot ivory-demand"
 
 @#$#@#$#@
 ## WHAT IS IT?
