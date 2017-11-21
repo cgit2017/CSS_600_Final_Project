@@ -178,6 +178,8 @@ to reproduce
       set size elephant-size
       set color (grey)
       set energy offspring-energy
+      set tusk-weight 0
+      set tusk-growth-rate 1 + random-float 5.8
       set age 0
       rt random 360 fd elephant-step
     ]
@@ -370,7 +372,7 @@ num-poachers
 num-poachers
 0
 100
-99.0
+100.0
 1
 1
 NIL
