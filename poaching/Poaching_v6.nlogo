@@ -1,3 +1,5 @@
+;; TODO
+
 globals
 [
   elephant-step
@@ -118,10 +120,6 @@ to initialize-elephants
     set size elephant-size
     set energy 20 + random 20 - random 20
     set age 1 + random max-age
-    set location random 2
-    ifelse location = 1
-    [set color yellow]
-    [set color blue]
     set tusk-growth-rate 1 + random-float 5.8
     setxy random world-width random world-height
   ]
@@ -135,6 +133,8 @@ to initialize-poachers
   [
     set color red
     set ivory 0
+    set funds random 100
+    set funds-threshold random 20
     setxy random world-width random world-height
   ]
 end
@@ -206,6 +206,7 @@ to hunt-elephants
   fd poacher-step
   if target != nobody and target != 0 [
     if member? target turtles-here [
+      set ivory (ivory + ([tusk-weight] of target))
       ask target [die]
     ]
   ]
@@ -243,6 +244,10 @@ to-report avg-elephant-energy
   let total-energy sum [energy] of elephants
   let avg-energy (total-energy / count elephants)
   report avg-energy
+end
+
+to-report collected-ivory
+  report sum [ivory] of poachers
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -404,6 +409,24 @@ false
 "" ""
 PENS
 "default" 1.0 0 -16777216 true "" "plot ivory-demand"
+
+PLOT
+8
+331
+208
+481
+collected-ivory
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot collected-ivory"
 
 @#$#@#$#@
 ## WHAT IS IT?
