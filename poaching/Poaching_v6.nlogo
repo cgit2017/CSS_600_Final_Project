@@ -79,7 +79,6 @@ to go
   ]
   ask poachers [
     if funds < funds-threshold [die]
-
     hunt-elephants
     go-to-market
   ]
@@ -91,13 +90,13 @@ end
 
 to update-ivory-demand
   ifelse random 2 = 1
-  [set ivory-demand (ivory-demand + random 3)
-  if ivory-demand < 0 [
-    set ivory-demand 0]
+  [set ivory-demand (ivory-demand + random-float (ivory-demand * 0.03))
+  if ivory-demand <= 0 [
+    set ivory-demand 1]
   ]
-  [set ivory-demand (ivory-demand - random 3)
-    if ivory-demand < 0 [
-      set ivory-demand 0]
+  [set ivory-demand (ivory-demand - random-float (ivory-demand * 0.03))
+    if ivory-demand <= 0 [
+      set ivory-demand 1]
     ]
   set temp-ivory-demand ivory-demand
 end
@@ -206,22 +205,23 @@ to hunt-elephants
   fd poacher-step
   if target != nobody and target != 0 [
     if member? target turtles-here [
-      set ivory (ivory + ([tusk-weight] of target))
+      set ivory (ivory + (100 * [tusk-weight] of target))
       ask target [die]
     ]
   ]
+  set funds (funds - 1)
 end
 
 to go-to-market
   let ivory-sale 0
   if temp-ivory-demand > 0 and ivory > 0 [
     ifelse temp-ivory-demand > ivory
-    [set ivory-sale (temp-ivory-demand - ivory)]
+    [set ivory-sale (ivory)]
     [set ivory-sale (ivory - temp-ivory-demand)]
   ]
   set temp-ivory-demand (temp-ivory-demand - ivory-sale)
   set ivory (ivory - ivory-sale)
-  set funds (funds + (ivory-sale * ivory-demand))
+  set funds (funds + (ivory-sale))
 end
 
 to grow-food
@@ -245,16 +245,12 @@ to-report avg-elephant-energy
   let avg-energy (total-energy / count elephants)
   report avg-energy
 end
-
-to-report collected-ivory
-  report sum [ivory] of poachers
-end
 @#$#@#$#@
 GRAPHICS-WINDOW
-728
-14
-1346
-633
+436
+13
+1054
+632
 -1
 -1
 6.04
@@ -385,7 +381,7 @@ initial-ivory-demand
 initial-ivory-demand
 0
 100
-100.0
+5.0
 1
 1
 NIL
@@ -396,7 +392,7 @@ PLOT
 495
 205
 645
-plot 3
+ivory demand
 NIL
 NIL
 0.0
@@ -425,7 +421,7 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot collected-ivory"
+"default" 1.0 0 -16777216 true "" "plot sum [ivory] of poachers"
 
 PLOT
 217
@@ -444,6 +440,24 @@ false
 "" ""
 PENS
 "default" 1.0 0 -16777216 true "" "plot sum [tusk-weight] of elephants"
+
+PLOT
+215
+334
+415
+484
+funds
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot sum [funds] of poachers"
 
 @#$#@#$#@
 ## WHAT IS IT?
