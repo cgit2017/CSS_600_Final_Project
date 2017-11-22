@@ -175,27 +175,36 @@ to eat-food
 end
 
 to reproduce
+  ; elephants must be old enough and have enough energy to reproduce
   if energy > min-energy-to-reproduce and age > min-reproduce-age
   [
-    set energy (energy / 2)
-    let offspring-energy (energy / 2)
-    hatch 1 [
-      mutate-tusk-growth-rate
-      set size elephant-size
-      set color (grey)
-      set energy offspring-energy
-      set tusk-weight 0
-      ;set tusk-growth-rate 1 + random-float 5.8
-      set age 0
-      rt random 360 fd elephant-step
+    let chance-of-reproducing 0
+    let reproducable-elephants elephants with [energy > min-energy-to-reproduce and age > min-reproduce-age]
+    let max-tusk-elephant one-of reproducable-elephants with-max [tusk-weight]
+    let max-tusk [tusk-weight] of max-tusk-elephant
+    let log-base-elephant one-of reproducable-elephants with-min [tusk-weight]
+    let log-base [tusk-weight] of log-base-elephant
+    set chance-of-reproducing log tusk-weight log-base
+    if chance-of-reproducing < random-float .5 [
+      set energy (energy / 2)
+      let offspring-energy (energy / 2)
+      hatch 1 [
+        mutate-tusk-growth-rate
+        set size elephant-size
+        set color (grey)
+        set energy offspring-energy
+        set tusk-weight 0
+        set age 0
+        rt random 360 fd elephant-step
+      ]
     ]
   ]
 end
 
 to mutate-tusk-growth-rate
   ifelse random 2 = 1
-  [set tusk-growth-rate (tusk-growth-rate + random-float 1)]
-  [set tusk-growth-rate (tusk-growth-rate - random-float 1)]
+  [set tusk-growth-rate (tusk-growth-rate + random-float (tusk-growth-rate * 0.10))]
+  [set tusk-growth-rate (tusk-growth-rate - random-float (tusk-growth-rate * 0.10))]
 
   if tusk-growth-rate > max-tusk-growth-rate [set tusk-growth-rate (max-tusk-growth-rate)]
   if tusk-growth-rate <= 0 [set tusk-growth-rate (0.01)]
@@ -344,8 +353,8 @@ SLIDER
 num-elephants
 num-elephants
 0
-600
-600.0
+4000
+1438.0
 1
 1
 NIL
@@ -395,7 +404,7 @@ num-poachers
 num-poachers
 0
 100
-8.0
+60.0
 1
 1
 NIL
