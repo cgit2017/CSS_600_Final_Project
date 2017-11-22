@@ -255,6 +255,12 @@ to-report avg-elephant-energy
   let avg-energy (total-energy / count elephants)
   report avg-energy
 end
+
+to-report avg-tusk-weight
+  let total-tusk-weight sum [tusk-weight] of elephants
+  let avg-tusk (total-tusk-weight / count elephants)
+  report avg-tusk * 100
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 436
@@ -326,7 +332,7 @@ num-elephants
 num-elephants
 0
 600
-307.0
+600.0
 1
 1
 NIL
@@ -486,6 +492,24 @@ false
 "" ""
 PENS
 "default" 1.0 0 -16777216 true "" "plot count poachers"
+
+PLOT
+6
+661
+206
+811
+average tusk weight
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot avg-tusk-weight"
 
 @#$#@#$#@
 ## WHAT IS IT?
