@@ -269,23 +269,11 @@ to decrease-demand
   set ivory-demand (ivory-demand - 10)
 end
 
-to-report avg-elephant-energy
-  let total-energy sum [energy] of elephants
-  let avg-energy (total-energy / count elephants)
-  report avg-energy
-end
-
-to-report avg-tusk-weight
-  let total-tusk-weight sum [tusk-weight] of elephants
-  let avg-tusk (total-tusk-weight / count elephants)
-  report avg-tusk * 100
-end
-
-to-report avg-ivory
-  let total-ivory sum [ivory] of poachers
-  let avg-poacher-ivory (total-ivory / count poachers)
-  report avg-poacher-ivory
-end
+;to-report avg-elephant-energy
+;  let total-energy sum [energy] of elephants
+;  let avg-energy (total-energy / count elephants)
+;  report avg-energy
+;end
 @#$#@#$#@
 GRAPHICS-WINDOW
 436
@@ -451,7 +439,7 @@ PLOT
 331
 208
 481
-collected-ivory
+unsold ivory
 NIL
 NIL
 0.0
@@ -534,7 +522,7 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot avg-tusk-weight"
+"default" 1.0 0 -16777216 true "" "plot mean [tusk-weight] of elephants * 100"
 
 PLOT
 219
@@ -552,7 +540,7 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot avg-ivory"
+"default" 1.0 0 -16777216 true "" "plot mean [ivory] of poachers"
 
 BUTTON
 19
