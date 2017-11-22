@@ -4,6 +4,7 @@ globals
 [
   elephant-step
   elephant-size
+  max-tusk-growth-rate
   min-energy-to-reproduce
   min-reproduce-age
   max-age
@@ -53,6 +54,7 @@ to setup
   set min-reproduce-age 10
   set min-energy-to-reproduce 10
   set max-age 50
+  set max-tusk-growth-rate 5.8
 
   set poacher-size 1
   set poacher-step 1
@@ -81,7 +83,7 @@ to go
     if funds < funds-threshold [die]
     if ivory <= 0 [hunt-elephants]
     go-to-market
-    set funds (funds - 1)
+    set funds (funds - (ivory ^ (ivory / 100)))
   ]
   ask patches [
     grow-food
@@ -112,7 +114,6 @@ to set-initial-tusk-weight [initial-elephant-age]
   ]
 end
 
-
 to initialize-elephants
   create-elephants num-elephants
   [
@@ -120,7 +121,7 @@ to initialize-elephants
     set size elephant-size
     set energy 20 + random 20 - random 20
     set age 1 + random max-age
-    set tusk-growth-rate 1 + random-float 5.8
+    set tusk-growth-rate 1 + random-float max-tusk-growth-rate
     setxy random world-width random world-height
   ]
   ask elephants [
@@ -179,15 +180,25 @@ to reproduce
     set energy (energy / 2)
     let offspring-energy (energy / 2)
     hatch 1 [
+      mutate-tusk-growth-rate
       set size elephant-size
       set color (grey)
       set energy offspring-energy
       set tusk-weight 0
-      set tusk-growth-rate 1 + random-float 5.8
+      ;set tusk-growth-rate 1 + random-float 5.8
       set age 0
       rt random 360 fd elephant-step
     ]
   ]
+end
+
+to mutate-tusk-growth-rate
+  ifelse random 2 = 1
+  [set tusk-growth-rate (tusk-growth-rate + random-float 1)]
+  [set tusk-growth-rate (tusk-growth-rate - random-float 1)]
+
+  if tusk-growth-rate > max-tusk-growth-rate [set tusk-growth-rate (max-tusk-growth-rate)]
+  if tusk-growth-rate <= 0 [set tusk-growth-rate (0.01)]
 end
 
 to death
@@ -250,17 +261,19 @@ to food-color
   [set pcolor (white)]
 end
 
-to-report avg-elephant-energy
-  let total-energy sum [energy] of elephants
-  let avg-energy (total-energy / count elephants)
-  report avg-energy
+to increase-demand
+  set ivory-demand (ivory-demand + 10)
 end
 
-to-report avg-tusk-weight
-  let total-tusk-weight sum [tusk-weight] of elephants
-  let avg-tusk (total-tusk-weight / count elephants)
-  report avg-tusk * 100
+to decrease-demand
+  set ivory-demand (ivory-demand - 10)
 end
+
+;to-report avg-elephant-energy
+;  let total-energy sum [energy] of elephants
+;  let avg-energy (total-energy / count elephants)
+;  report avg-energy
+;end
 @#$#@#$#@
 GRAPHICS-WINDOW
 436
@@ -382,7 +395,7 @@ num-poachers
 num-poachers
 0
 100
-100.0
+8.0
 1
 1
 NIL
@@ -426,7 +439,7 @@ PLOT
 331
 208
 481
-collected-ivory
+unsold ivory
 NIL
 NIL
 0.0
@@ -462,7 +475,7 @@ PLOT
 334
 415
 484
-funds
+average poacher funds
 NIL
 NIL
 0.0
@@ -473,7 +486,7 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot sum [funds] of poachers"
+"default" 1.0 0 -16777216 true "" "plot mean [funds] of poachers"
 
 PLOT
 215
@@ -509,7 +522,59 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot avg-tusk-weight"
+"default" 1.0 0 -16777216 true "" "plot mean [tusk-weight] of elephants * 100"
+
+PLOT
+219
+666
+419
+816
+average poacher ivory
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot mean [ivory] of poachers"
+
+BUTTON
+19
+847
+159
+880
+NIL
+increase-demand
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+187
+852
+330
+885
+NIL
+decrease-demand
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
