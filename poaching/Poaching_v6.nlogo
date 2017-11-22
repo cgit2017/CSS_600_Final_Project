@@ -55,7 +55,7 @@ to setup
   set max-age 50
 
   set poacher-size 1
-  set poacher-step .8
+  set poacher-step 1
   set poacher-vision 10
 
   set food-growth-rate 10
@@ -79,8 +79,9 @@ to go
   ]
   ask poachers [
     if funds < funds-threshold [die]
-    hunt-elephants
+    if ivory <= 0 [hunt-elephants]
     go-to-market
+    set funds (funds - 1)
   ]
   ask patches [
     grow-food
@@ -132,6 +133,7 @@ to initialize-poachers
   [
     set color red
     set ivory 0
+    set target nobody
     set funds random 100
     set funds-threshold random 20
     setxy random world-width random world-height
@@ -147,10 +149,13 @@ to initialize-food
 end
 
 to elephants-move
+  ; energy cost for moving
   set energy (energy - 1)
   set age (age + 1)
   ifelse tusk-weight = 0
+  ; start tusk growth for all baby elephants
   [set tusk-weight (tusk-growth-rate / 100)]
+  ; else, increase tusk weight by growth rate percentage
   [set tusk-weight (tusk-weight + (tusk-weight * (tusk-growth-rate / 100)))]
   rt random 50 - random 50
   fd elephant-step
@@ -190,9 +195,6 @@ to death
 end
 
 to hunt-elephants
-  if target = 0 [
-    set target nobody
-  ]
   ifelse target = nobody
   [
     let potential-targets nobody
@@ -209,7 +211,6 @@ to hunt-elephants
       ask target [die]
     ]
   ]
-  set funds (funds - 1)
 end
 
 to go-to-market
@@ -222,6 +223,15 @@ to go-to-market
   set temp-ivory-demand (temp-ivory-demand - ivory-sale)
   set ivory (ivory - ivory-sale)
   set funds (funds + (ivory-sale))
+  if temp-ivory-demand > 0 [
+    hatch 1 [
+      set color red
+      set ivory 0
+      set funds random 100
+      set funds-threshold random 20
+      setxy random world-width random world-height
+    ]
+  ]
 end
 
 to grow-food
@@ -381,7 +391,7 @@ initial-ivory-demand
 initial-ivory-demand
 0
 100
-5.0
+100.0
 1
 1
 NIL
@@ -458,6 +468,24 @@ false
 "" ""
 PENS
 "default" 1.0 0 -16777216 true "" "plot sum [funds] of poachers"
+
+PLOT
+215
+498
+415
+648
+poachers
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot count poachers"
 
 @#$#@#$#@
 ## WHAT IS IT?
