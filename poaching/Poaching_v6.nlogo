@@ -36,6 +36,7 @@ poachers-own
   ivory
   ; elephant that the poacher is pursuing
   target
+  ; the amount of money a poacher has (equal to money from sale of ivory minus money spent between sales)
   funds
   ; level of funds where poacher will drop out of the market
   funds-threshold
@@ -51,21 +52,22 @@ patches-own
 
 to setup
   ca
+  ;; initialize elephant variables
   set elephant-size 1.2
   set elephant-step 0.3
   set min-reproduce-age 10
   set min-energy-to-reproduce 10
   set max-age 50
   set max-tusk-growth-rate 5.8
-
+  ;; initialize poacher variables
   set poacher-size 1
   set poacher-step 1
   set poacher-vision 10
-
+  ;; initialize patch variables
   set food-growth-rate 10
-
+  ;; initialize global variables
   set ivory-demand initial-ivory-demand
-
+  ;; initialize agents and environment
   initialize-elephants
   initialize-poachers
   initialize-food
@@ -76,21 +78,9 @@ end
 to go
   update-ivory-demand
   calculate-tusk-mean-and-stdev
-  ask elephants [
-    elephants-move
-    eat-food
-    reproduce
-    death
-  ]
-  ask poachers [
-    if funds < funds-threshold [die]
-    if ivory <= 0 [hunt-elephants]
-    go-to-market
-    set funds (funds - (ivory ^ (ivory / 100)))
-  ]
-  ask patches [
-    grow-food
-  ]
+  elephants-go
+  poachers-go
+  patches-go
   tick
 end
 
@@ -110,6 +100,30 @@ to update-ivory-demand
       set ivory-demand 1]
     ]
   set temp-ivory-demand ivory-demand
+end
+
+to elephants-go
+  ask elephants [
+    elephants-move
+    eat-food
+    reproduce
+    death
+  ]
+end
+
+to poachers-go
+  ask poachers [
+    if funds < funds-threshold [die]
+    if ivory <= 0 [hunt-elephants]
+    go-to-market
+    set funds (funds - (ivory ^ (ivory / 100)))
+  ]
+end
+
+to patches-go
+  ask patches [
+    grow-food
+  ]
 end
 
 to set-initial-tusk-weight [initial-elephant-age]
@@ -285,12 +299,6 @@ end
 to decrease-demand
   set ivory-demand (ivory-demand - 10)
 end
-
-;to-report avg-elephant-energy
-;  let total-energy sum [energy] of elephants
-;  let avg-energy (total-energy / count elephants)
-;  report avg-energy
-;end
 @#$#@#$#@
 GRAPHICS-WINDOW
 436
