@@ -75,6 +75,7 @@ to setup
   reset-ticks
 end
 
+;; see individual go procedures for details of functionality
 to go
   update-ivory-demand
   calculate-tusk-mean-and-stdev
@@ -84,21 +85,34 @@ to go
   tick
 end
 
+;; calculate the mean and standard deviation of all elephant tusks for purposes of determining
+;; the chance each elephant has of reproducing - elephants with larger tusks will have higher
+;; probability of reproducing than elephants with smaller tusks
 to calculate-tusk-mean-and-stdev
   set tusk-mean mean [tusk-weight] of elephants
   set tusk-std standard-deviation [tusk-weight] of elephants
 end
 
+;; this procedure randomly increases or decreases the demand for ivory
 to update-ivory-demand
+  ;; Equally likely that demand will increase or decrease
   ifelse random 2 = 1
+  ;; increase the demand by no more than 3% of current demand
   [set ivory-demand (ivory-demand + random-float (ivory-demand * 0.03))
+  ;; demand can never be negative or zero
   if ivory-demand <= 0 [
     set ivory-demand 1]
   ]
+  ;; decrease demand by no more than 3% of current demand
   [set ivory-demand (ivory-demand - random-float (ivory-demand * 0.03))
+  ;; demand can never be negative or zero
     if ivory-demand <= 0 [
       set ivory-demand 1]
     ]
+  ;; temporary ivory demand variable is required so that when poachers fulfill the demand
+  ;; there is no need to affect the actual ivory demand - whatever the actual ivory demand
+  ;; is, poachers will try to fulfill it with the ivory they have collected, so to track the
+  ;; fulfilled demand, ivory sales are subtracted from the temporary ivory demand variable.
   set temp-ivory-demand ivory-demand
 end
 
@@ -113,9 +127,14 @@ end
 
 to poachers-go
   ask poachers [
+    ;; if poaching isn't lucrative enough, poachers will quit
     if funds < funds-threshold [die]
+    ;; if the poacher has been able to sell all the ivory it has collected, it will hunt another elephant
     if ivory <= 0 [hunt-elephants]
+    ;; procedure for poachers to try to sell their ivory
     go-to-market
+    ;; poachers' funds are reduced at a greater rate depending on the amount of ivory in their possession
+    ;; this simulates a higher economic burden of storing more ivory
     set funds (funds - (ivory ^ (ivory / 100)))
   ]
 end
