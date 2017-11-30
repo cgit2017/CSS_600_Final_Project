@@ -14,6 +14,8 @@ globals
   poacher-vision
   ivory-demand
   temp-ivory-demand
+  tusk-mean
+  tusk-std
 ]
 
 breed [elephants elephant]
@@ -25,7 +27,7 @@ elephants-own
   age
   tusk-weight
   tusk-growth-rate
-  location
+  chance-of-reproducing
 ]
 
 poachers-own
@@ -73,6 +75,7 @@ end
 
 to go
   update-ivory-demand
+  calculate-tusk-mean-and-stdev
   ask elephants [
     elephants-move
     eat-food
@@ -89,6 +92,11 @@ to go
     grow-food
   ]
   tick
+end
+
+to calculate-tusk-mean-and-stdev
+  set tusk-mean mean [tusk-weight] of elephants
+  set tusk-std standard-deviation [tusk-weight] of elephants
 end
 
 to update-ivory-demand
@@ -175,27 +183,36 @@ to eat-food
 end
 
 to reproduce
+  ; elephants must be old enough and have enough energy to reproduce
   if energy > min-energy-to-reproduce and age > min-reproduce-age
   [
-    set energy (energy / 2)
-    let offspring-energy (energy / 2)
-    hatch 1 [
-      mutate-tusk-growth-rate
-      set size elephant-size
-      set color (grey)
-      set energy offspring-energy
-      set tusk-weight 0
-      ;set tusk-growth-rate 1 + random-float 5.8
-      set age 0
-      rt random 360 fd elephant-step
+    ; this normalizes the tusk-weight data for the next step
+    let reproducing-factor (tusk-weight - tusk-mean) / tusk-std
+    ; this transforms the normalized data into an exponential relationship between
+    ; tusk size and the chance of reproducing at each step
+    set chance-of-reproducing (((reproducing-factor + 3) ^ reproduction-chance) / 100)
+    if chance-of-reproducing > random-float 1 [
+      ; energy cost of reproducing
+      set energy (energy / 2)
+      let offspring-energy (energy / 2)
+      hatch 1 [
+        ; allow for genetic variation in offspring
+        mutate-tusk-growth-rate
+        set size elephant-size
+        set color (grey)
+        set energy offspring-energy
+        set tusk-weight 0
+        set age 0
+        rt random 360 fd elephant-step
+      ]
     ]
   ]
 end
 
 to mutate-tusk-growth-rate
   ifelse random 2 = 1
-  [set tusk-growth-rate (tusk-growth-rate + random-float 1)]
-  [set tusk-growth-rate (tusk-growth-rate - random-float 1)]
+  [set tusk-growth-rate (tusk-growth-rate + random-float (tusk-growth-rate * 0.10))]
+  [set tusk-growth-rate (tusk-growth-rate - random-float (tusk-growth-rate * 0.10))]
 
   if tusk-growth-rate > max-tusk-growth-rate [set tusk-growth-rate (max-tusk-growth-rate)]
   if tusk-growth-rate <= 0 [set tusk-growth-rate (0.01)]
@@ -344,29 +361,12 @@ SLIDER
 num-elephants
 num-elephants
 0
-600
-600.0
+4000
+1438.0
 1
 1
 NIL
 HORIZONTAL
-
-BUTTON
-148
-10
-211
-43
-NIL
-step
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
 
 PLOT
 6
@@ -395,7 +395,7 @@ num-poachers
 num-poachers
 0
 100
-8.0
+68.0
 1
 1
 NIL
@@ -575,6 +575,39 @@ NIL
 NIL
 NIL
 1
+
+PLOT
+440
+667
+640
+817
+average elephant age
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot mean [age] of elephants"
+
+SLIDER
+240
+49
+426
+82
+reproduction-chance
+reproduction-chance
+0.01
+5
+2.99
+0.01
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
