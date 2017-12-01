@@ -94,20 +94,27 @@ end
 
 ;; see individual go procedures for details of functionality
 to go
-  update-ivory-demand
-  calculate-tusk-mean-and-stdev
-  elephants-go
-  poachers-go
-  patches-go
-  tick
+  ;; if there are any living elephants, do go procedures
+  ;; else stop the model
+  ifelse any? elephants [
+    update-ivory-demand
+    calculate-tusk-mean-and-stdev
+    elephants-go
+    poachers-go
+    patches-go
+    tick
+  ]
+  [stop]
 end
 
 ;; calculate the mean and standard deviation of all elephant tusks for purposes of determining
 ;; the chance each elephant has of reproducing - elephants with larger tusks will have higher
 ;; probability of reproducing than elephants with smaller tusks
 to calculate-tusk-mean-and-stdev
-  set tusk-mean mean [tusk-weight] of elephants
-  set tusk-std standard-deviation [tusk-weight] of elephants
+  if count elephants > 1 [
+    set tusk-mean mean [tusk-weight] of elephants
+    set tusk-std standard-deviation [tusk-weight] of elephants
+  ]
 end
 
 ;; this procedure randomly increases or decreases the demand for ivory to simulate fluctuation
@@ -332,7 +339,7 @@ to go-to-market
   set funds (funds + (ivory-sale))
   ;; if unfulfilled demand for ivory still exists, another poacher will enter the market because they believe they
   ;; can make money on the excess demand
-  if temp-ivory-demand > 0 [
+  if temp-ivory-demand > 0 and count poachers < 10000 [
     hatch 1 [
       set color red
       set ivory 0
@@ -447,7 +454,7 @@ num-elephants
 num-elephants
 0
 4000
-1438.0
+1620.0
 1
 1
 NIL
@@ -688,7 +695,7 @@ reproduction-chance
 reproduction-chance
 0.01
 5
-2.99
+4.03
 0.01
 1
 NIL
