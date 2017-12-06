@@ -119,25 +119,74 @@ end
 
 ;; this procedure randomly increases or decreases the demand for ivory to simulate fluctuation
 to update-ivory-demand
-  ;; Equally likely that demand will increase or decrease
-  ifelse random 2 = 1
-  ;; increase the demand by no more than 3% of current demand
-  [set ivory-demand (ivory-demand + random-float (ivory-demand * 0.03))
-  ;; demand can never be negative or zero
-  if ivory-demand <= 0 [
-    set ivory-demand 1]
-  ]
-  ;; decrease demand by no more than 3% of current demand
-  [set ivory-demand (ivory-demand - random-float (ivory-demand * 0.03))
-  ;; demand can never be negative or zero
+  ;; random fluctuations
+  if demand-behavior = "random" [
+    ;; Equally likely that demand will increase or decrease
+    ifelse random 2 = 1
+    ;; increase the demand by no more than 3% of current demand
+    [set ivory-demand (ivory-demand + random-float (ivory-demand * 0.03))
+    ;; demand can never be negative or zero
     if ivory-demand <= 0 [
       set ivory-demand 1]
     ]
-  ;; temporary ivory demand variable is required so that when poachers fulfill the demand
-  ;; there is no need to affect the actual ivory demand - whatever the actual ivory demand
-  ;; is, poachers will try to fulfill it with the ivory they have collected, so to track the
-  ;; fulfilled demand, ivory sales are subtracted from the temporary ivory demand variable.
-  set temp-ivory-demand ivory-demand
+    ;; decrease demand by no more than 3% of current demand
+    [set ivory-demand (ivory-demand - random-float (ivory-demand * 0.03))
+    ;; demand can never be negative or zero
+      if ivory-demand <= 0 [
+        set ivory-demand 1]
+      ]
+    ;; temporary ivory demand variable is required so that when poachers fulfill the demand
+    ;; there is no need to affect the actual ivory demand - whatever the actual ivory demand
+    ;; is, poachers will try to fulfill it with the ivory they have collected, so to track the
+    ;; fulfilled demand, ivory sales are subtracted from the temporary ivory demand variable.
+    set temp-ivory-demand ivory-demand
+  ]
+
+  ;; increasing demand
+  if demand-behavior = "increasing" [
+    ;; Equally likely that demand will increase or decrease
+    ifelse random 2 = 1
+    ;; increase the demand by no more than 3% of current demand
+    [set ivory-demand (ivory-demand + random-float (ivory-demand * 0.03))
+    ;; demand can never be negative or zero
+    if ivory-demand <= 0 [
+      set ivory-demand 1]
+    ]
+    ;; decrease demand by no more than 1% of current demand
+    [set ivory-demand (ivory-demand - random-float (ivory-demand * 0.01))
+    ;; demand can never be negative or zero
+      if ivory-demand <= 0 [
+        set ivory-demand 1]
+      ]
+    ;; temporary ivory demand variable is required so that when poachers fulfill the demand
+    ;; there is no need to affect the actual ivory demand - whatever the actual ivory demand
+    ;; is, poachers will try to fulfill it with the ivory they have collected, so to track the
+    ;; fulfilled demand, ivory sales are subtracted from the temporary ivory demand variable.
+    set temp-ivory-demand ivory-demand
+  ]
+
+  ;; decreasing demand
+  if demand-behavior = "decreasing" [
+    ;; Equally likely that demand will increase or decrease
+    ifelse random 2 = 1
+    ;; increase the demand by no more than 1% of current demand
+    [set ivory-demand (ivory-demand + random-float (ivory-demand * 0.01))
+    ;; demand can never be negative or zero
+    if ivory-demand <= 0 [
+      set ivory-demand 1]
+    ]
+    ;; decrease demand by no more than 3% of current demand
+    [set ivory-demand (ivory-demand - random-float (ivory-demand * 0.03))
+    ;; demand can never be negative or zero
+      if ivory-demand <= 0 [
+        set ivory-demand 1]
+      ]
+    ;; temporary ivory demand variable is required so that when poachers fulfill the demand
+    ;; there is no need to affect the actual ivory demand - whatever the actual ivory demand
+    ;; is, poachers will try to fulfill it with the ivory they have collected, so to track the
+    ;; fulfilled demand, ivory sales are subtracted from the temporary ivory demand variable.
+    set temp-ivory-demand ivory-demand
+  ]
 end
 
 to elephants-go
@@ -446,25 +495,25 @@ NIL
 1
 
 SLIDER
-5
-48
-223
-81
+4
+65
+222
+98
 num-elephants
 num-elephants
 0
 4000
-1620.0
+1000.0
 1
 1
 NIL
 HORIZONTAL
 
 PLOT
-6
-171
-206
-321
+5
+147
+205
+297
 number of elephants
 NIL
 NIL
@@ -476,28 +525,28 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot count elephants"
+"default" 1.0 0 -9276814 true "" "plot count elephants"
 
 SLIDER
-5
-88
-177
-121
+4
+105
+176
+138
 num-poachers
 num-poachers
 0
 100
-68.0
+100.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-5
-130
-186
-163
+190
+106
+371
+139
 initial-ivory-demand
 initial-ivory-demand
 0
@@ -509,10 +558,10 @@ NIL
 HORIZONTAL
 
 PLOT
-5
-495
-205
-645
+4
+471
+204
+621
 ivory demand
 NIL
 NIL
@@ -527,10 +576,10 @@ PENS
 "default" 1.0 0 -16777216 true "" "plot ivory-demand"
 
 PLOT
-8
-331
-208
-481
+7
+307
+207
+457
 unsold ivory
 NIL
 NIL
@@ -542,13 +591,13 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot sum [ivory] of poachers"
+"default" 1.0 0 -8630108 true "" "plot sum [ivory] of poachers"
 
 PLOT
-217
-172
-417
-322
+216
+148
+416
+298
 total tusk weight
 NIL
 NIL
@@ -560,13 +609,13 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot sum [tusk-weight] of elephants"
+"default" 1.0 0 -13791810 true "" "plot sum [tusk-weight] of elephants"
 
 PLOT
-215
-334
-415
-484
+214
+310
+414
+460
 average poacher funds
 NIL
 NIL
@@ -578,13 +627,13 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot mean [funds] of poachers"
+"default" 1.0 0 -5825686 true "" "plot mean [funds] of poachers"
 
 PLOT
-215
-498
-415
-648
+214
+474
+414
+624
 poachers
 NIL
 NIL
@@ -596,13 +645,13 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot count poachers"
+"default" 1.0 0 -2674135 true "" "plot count poachers"
 
 PLOT
-6
-661
-206
-811
+5
+637
+205
+787
 average tusk weight
 NIL
 NIL
@@ -617,10 +666,10 @@ PENS
 "default" 1.0 0 -16777216 true "" "plot mean [tusk-weight] of elephants * 100"
 
 PLOT
-219
-666
-419
-816
+218
+642
+418
+792
 average poacher ivory
 NIL
 NIL
@@ -635,10 +684,10 @@ PENS
 "default" 1.0 0 -16777216 true "" "plot mean [ivory] of poachers"
 
 BUTTON
-19
-847
-159
-880
+663
+648
+803
+681
 NIL
 increase-demand
 NIL
@@ -652,10 +701,10 @@ NIL
 1
 
 BUTTON
-187
-852
-330
-885
+816
+648
+959
+681
 NIL
 decrease-demand
 NIL
@@ -670,9 +719,9 @@ NIL
 
 PLOT
 440
-667
+642
 640
-817
+792
 average elephant age
 NIL
 NIL
@@ -687,19 +736,29 @@ PENS
 "default" 1.0 0 -16777216 true "" "plot mean [age] of elephants"
 
 SLIDER
-240
-49
-426
-82
+239
+66
+425
+99
 reproduction-chance
 reproduction-chance
 0.01
 5
-4.03
+2.0
 0.01
 1
 NIL
 HORIZONTAL
+
+CHOOSER
+166
+10
+304
+55
+demand-behavior
+demand-behavior
+"random" "increasing" "decreasing"
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -708,7 +767,7 @@ This model represents an abstract environment in which elephants and poachers in
 
 ## HOW IT WORKS
 
-A population of elephants and poachers is initiated in an environment with food resources for elephants to consume. The elephants move around the environment while aging, expending energy, and consuming food to replenish energy. Elephants die if they reach the age of 50 or run out of energy. Each elephant has an attribute that determines the growth rate of its tusks, which is important because the larger the elephant's tusks the more likely it is to reproduce. When an elephant reproduces, it passes on its tusk growth rate gene to its offspring, with some random genetic mutation, making it more likely that the average tusk weight of all elephants will increase over time, unless there are interfering factors. Elephants also expend half of their current energy to reproduce. Poachers only move around the environment when they are hunting elephants. They hunt when there is economic demand for ivory, and they have already sold all of the ivory they have collected. Poachers have limited vision in the direction they are heading, and they will hunt the elephant with the largest tusk they can "see". Poachers move slightly faster than elephants, and when they catch the elephant they are hunting, the elephant is killed and the poacher collects ivory equal to the value of the elpahnts tusk weight. The poacher will then try to sell the ivory, and, depending on the unfulfilled demand, will either be able to sell all of the ivory it has collected, some of the ivory it has collected, or none. Poachers receive money from the sale of ivory, and they also expend money at a rate that increases with the amount of ivory they have. This simulates the increased economic burden of storing larger quanities of ivory. The poachers' calculation of the economic utility of poaching compared to other activities is represented by a threshold amount of money below which they will stop poaching because they could make more money doing something else. If the existing poachers are unable to fulfill the demand for ivory, then new poachers will enter the market.
+A population of elephants and poachers is initiated in an environment with food resources for elephants to consume. The elephants move around the environment while aging, expending energy, and consuming food to replenish energy. Elephants die if they reach the age of 50 or run out of energy. Each elephant has an attribute that determines the growth rate of its tusks, which is important because the larger the elephant's tusks the more likely it is to reproduce. When an elephant reproduces, it passes on its tusk growth rate gene to its offspring, with some random genetic mutation, making it more likely that the average tusk weight of all elephants will increase over time, unless there are interfering factors. Elephants also expend half of their current energy to reproduce. Poachers only move around the environment when they are hunting elephants. They hunt when there is economic demand for ivory, and they have already sold all of the ivory they have collected. Poachers have limited vision in the direction they are heading, and they will hunt the elephant with the largest tusk they can "see". Poachers move slightly faster than elephants, and when they catch the elephant they are hunting, the elephant is killed and the poacher collects ivory equal to the value of the elephant's tusk weight. The poacher will then try to sell the ivory, and, depending on the unfulfilled demand, will either be able to sell all of the ivory it has collected, some of the ivory it has collected, or none. Poachers receive money from the sale of ivory, and they also expend money at a rate that increases with the amount of ivory they have. This simulates the increased economic burden of storing larger quantities of ivory. The poachers' calculation of the economic utility of poaching compared to other activities is represented by a threshold amount of money below which they will stop poaching because they could make more money doing something else. If the existing poachers are unable to fulfill the demand for ivory, then new poachers will enter the market.
 
 ## HOW TO USE IT
 To setup the model, select the starting model parameter values using the sliders, and then click "setup". Once the model initializes, click "go". If you want to stop the simulation, click "go" again. If you want to manually increase or decrease the economic demand for ivory, click the "increase-demand" or "decrease-demand" buttons respectively. This will increase or decrease the demand for ivory by 10 each time the corresponding button is clicked (ivory demand cannot be negative or 0).
@@ -1081,6 +1140,84 @@ NetLogo 6.0.2
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
+<experiments>
+  <experiment name="Experiment_01" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="3000"/>
+    <metric>count elephants</metric>
+    <metric>count poachers</metric>
+    <metric>mean [tusk-weight] of elephants</metric>
+    <metric>mean [funds] of poachers</metric>
+    <metric>mean [ivory] of poachers</metric>
+    <metric>ivory-demand</metric>
+    <metric>sum [ivory] of poachers</metric>
+    <enumeratedValueSet variable="num-elephants">
+      <value value="1000"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="num-poachers">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="reproduction-chance">
+      <value value="2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="initial-ivory-demand">
+      <value value="100"/>
+      <value value="400"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="Experiment_02" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="3000"/>
+    <metric>count elephants</metric>
+    <metric>count poachers</metric>
+    <metric>mean [tusk-weight] of elephants</metric>
+    <metric>mean [funds] of poachers</metric>
+    <metric>mean [ivory] of poachers</metric>
+    <metric>ivory-demand</metric>
+    <metric>sum [ivory] of poachers</metric>
+    <enumeratedValueSet variable="num-elephants">
+      <value value="1620"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="num-poachers">
+      <value value="68"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="reproduction-chance">
+      <value value="2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="initial-ivory-demand">
+      <value value="100"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="Experiment_03" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="1500"/>
+    <metric>count elephants</metric>
+    <metric>count poachers</metric>
+    <metric>mean [tusk-weight] of elephants</metric>
+    <metric>mean [funds] of poachers</metric>
+    <metric>mean [ivory] of poachers</metric>
+    <metric>ivory-demand</metric>
+    <metric>sum [ivory] of poachers</metric>
+    <enumeratedValueSet variable="demand-behavior">
+      <value value="&quot;increasing&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="num-elephants">
+      <value value="1000"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="num-poachers">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="reproduction-chance">
+      <value value="2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="initial-ivory-demand">
+      <value value="100"/>
+    </enumeratedValueSet>
+  </experiment>
+</experiments>
 @#$#@#$#@
 @#$#@#$#@
 default
